@@ -2,6 +2,8 @@ package com.demo.ratinginfoservice.model;
 
 public class Rating
 {
+
+
     private String movieId;
     private int rating;
 
@@ -24,5 +26,13 @@ public class Rating
 
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    @Override
+    public String toString() {
+        return "Rating{" +
+                "movieId='" + movieId + '\'' +
+                ", rating=" + rating +
+                '}';
     }
 }

@@ -4,7 +4,6 @@ public class catalogItem
 {
     private String name;
     private String description;
-
     private int rating;
 
     public catalogItem(String name, String description, int rating) {

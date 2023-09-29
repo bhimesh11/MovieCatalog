@@ -5,6 +5,9 @@ import com.demo.moviecatlogservice.model.Rating;
 import com.demo.moviecatlogservice.model.catalogItem;
 import com.demo.moviecatlogservice.model.movie;
 import com.demo.moviecatlogservice.model.userRating;
+import com.demo.moviecatlogservice.service.MovieInfo;
+import com.demo.moviecatlogservice.service.UserRatingInfo;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,24 +27,38 @@ import java.util.stream.Collectors;
 public class movieCatalogResouce {
 
     @Autowired
-private RestTemplate restTemplate;
+    private RestTemplate restTemplate;
     @Autowired
     private WebClient.Builder webClientBuilder;
 
+    @Autowired
+    MovieInfo movieInfo;
+
+    @Autowired
+    UserRatingInfo userRatingInfo;
+
     @GetMapping("/{userId}")
     private List<catalogItem> getCatalog(@PathVariable("userId") String userId) {
-        userRating ratings = restTemplate.getForObject(
-                "http://rating-info-service/ratingsdata/users/" + userId, userRating.class);
+
+        userRating ratings = userRatingInfo.getForRatingApi(userId);
 
         return ratings.getRatings().stream().
                 map(rate ->
-                {
-                    movie movies =
-                            restTemplate.getForObject("http://movie-info-service/movies/" + rate.getRating(), movie.class);
-                    return new catalogItem(movies.getName(), "description", rate.getRating());
-                }).collect(Collectors.toList());
+                     movieInfo.getCatalogItemforMovies(rate))
+                .collect(Collectors.toList());
 
     }
+
+
+
+
+    private List<catalogItem> getFallBackCatalog(@PathVariable("userId") String userId) {
+
+        return Arrays.asList(new catalogItem("No Movie","", 0));
+    }
+
+
+}
 //        return Collections.singletonList(
 //                new catalogItem("Transformer",
 //                        "Test",
@@ -67,4 +84,3 @@ private RestTemplate restTemplate;
 
 
 
-}
